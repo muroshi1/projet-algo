@@ -15,19 +15,34 @@ import org.jgrapht.util.*;
 import java.util.*;
 import java.util.function.*;
 
-
 import java.io.IOException;
+
+import org.jgrapht.*;
+import org.jgrapht.alg.connectivity.*;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm.*;
+import org.jgrapht.alg.interfaces.*;
+import org.jgrapht.alg.shortestpath.*;
+import org.jgrapht.graph.*;
+
+import java.util.*;
+
+import java.util.HashMap;
+
+import static org.jgrapht.Graphs.*;
+
+// https://jgrapht.org/guide/UserOverview#development-setup
 
 
 public class Solver{
-    private static final int SIZE = 10;
+    public static Graph<String, DefaultEdge> implicationGraph;
 
-
+    //
     public static String[] initArray() throws IOException {
         FileArrayProvider x = new FileArrayProvider();
         return x.readLines("./src/format.txt");
     }
 
+    // Create implication graph
     public static void initGraph() throws IOException {
         String[] array = initArray();
 
@@ -46,7 +61,7 @@ public class Solver{
         Graph<String, DefaultEdge> graph =
                 new DirectedPseudograph<>(vSupplier, SupplierUtil.createDefaultEdgeSupplier(), false);
 
-        // Add vertices and edges
+        // Add vertices and edges for each line (light bulb)
         for(String s : array){
             String[] light = s.split(" ");
             String constraintType = light[2].concat(light[3]).concat(light[4]).concat(light[5]);
@@ -124,10 +139,11 @@ public class Solver{
                     graph.addEdge(notX, Y);
                     graph.addEdge(notY, X);
                     break;
-                }
+            }
+
         }
 
-        // Print out the graph to be sure it's really complete
+        // Print out the graph for tests, delete later
         Iterator<String> iter = new DepthFirstIterator<>(graph);
         while (iter.hasNext()) {
             String vertex = iter.next();
@@ -136,12 +152,93 @@ public class Solver{
                             + graph.edgesOf(vertex).toString());
         }
 
+        implicationGraph = graph;
+    }
 
-}
+    // a 2-CNF formula is satisfiable if and only if there is no variable that belongs to the same strongly connected component as its negation
+    // https://en.wikipedia.org/wiki/2-satisfiability#Strongly_connected_components
+
+    public static HashMap<String, Boolean> visited = new HashMap<String, Boolean>();
+    public static HashMap<String, Boolean> visitedInverted = new HashMap<String, Boolean>();
+    public static Stack<String> stack = new Stack<String>();
+    public static HashMap<String, Integer> scc = new HashMap<String, Integer>();
+    public static int sccNumber = 1;
+
+    public static void firstDFS(String v) throws IOException{
+        if ((visited.get(v))){
+            return;
+        }
+
+        visited.put(v, true);
+
+        List<String> accessibleNeighbors = successorListOf(implicationGraph, v);
+
+        for (String u : accessibleNeighbors){
+            firstDFS(u);
+        }
+
+        stack.push(v);
+    }
+
+    public static void secondDFS(String v) throws IOException{
+        if ((visitedInverted.get(v))){
+            return;
+        }
+
+        scc.put(v, sccNumber);
+
+        visitedInverted.put(v, true);
+
+        List<String> invertedAccessibleNeighbors = predecessorListOf(implicationGraph, v);
+
+        for (String u : invertedAccessibleNeighbors){
+            secondDFS(u);
+        }
+    }
+
+    public static Boolean solve() throws IOException{
+        Set<String> vertices = implicationGraph.vertexSet();
+
+        //
+        for (String v : vertices){
+            visited.put(v, false);
+            visitedInverted.put(v, false);
+            scc.put(v, 0);
+        }
+
+        for (String v : vertices){
+            if (!visited.get(v)){
+                firstDFS(v);
+            }
+        }
+
+        while (!stack.isEmpty()){
+            String top = stack.pop();
+
+            if (!visitedInverted.get(top)){
+                secondDFS(top);
+                sccNumber++;
+            }
+        }
+
+        for (String v : vertices){
+            String not_v = "~" + v;
+            if (Objects.equals(scc.get(v), scc.get(not_v)) && scc.get(v) != 0){
+                return false;
+            }
+        }
+
+        return true;
+
+    }
 
 
     public static void main(String args[]) throws IOException {
         initGraph();
+
+        Boolean answer = solve();
+
+        System.out.println(answer);
     }
 
 
