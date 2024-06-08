@@ -53,7 +53,8 @@ Each light bulb is only affected by 2 switches and can thus be converted into cl
 then implications.
 Following discussions with other students, we were able to find all of the following implications.
 
-(image)
+![image](https://github.com/muroshi1/projet-algo/assets/119456902/79bd9fbf-e7bf-4086-9e10-e9fc85b7f86f)
+
 
 The X and Y variables are respectively row switches and column switches.
 We can now create our implication graph, let’s call it G.
@@ -162,7 +163,9 @@ bulb group.
 # Sources and Citations
 
 2-SAT : https://en.wikipedia.org/wiki/2-satisfiability
+
 File into Array : https://stackoverflow.com/questions/285712/java-reading-a-file-into-an-array
+
 2-SAT : https://github.com/xiaoyuetang/AlgorithmTwoSAT/tree/master
-Kosaraju’s algorithm : https://www.topcoder.com/thrive/articles/kosarajus-algorithm-for-strongly-
-connected-components
+
+Kosaraju’s algorithm : https://www.topcoder.com/thrive/articles/kosarajus-algorithm-for-strongly-connected-components
