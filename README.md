@@ -1,6 +1,10 @@
 Projet Algorithmique 2 : Fiat Lux
 =================================
 
+# Project
+
+See project-report.pdf
+
 # Requirements
 
 - JetBrains' IntellijIDEA IDE
